@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { MapPin, Car, Clock } from "lucide-react";
+import { MapPin, Car, Clock, KeyRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type GeoPoint = { latitude: number; longitude: number };
@@ -73,16 +73,17 @@ function formatPlaca(value: string) {
   return cleaned.slice(0, 7);
 }
 
-export default function DriverCheckIn() {
+export default function DriverCheckInPage() {
   const [placa, setPlaca] = useState("");
+  const [token, setToken] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const handleCheckIn = async () => {
-    if (!placa.trim()) {
+    if (!placa.trim() || !token.trim()) {
       toast({
         title: "Erro",
-        description: "Por favor, informe a placa do veículo",
+        description: "Placa e token são obrigatórios",
         variant: "destructive",
       });
       return;
@@ -102,7 +103,10 @@ export default function DriverCheckIn() {
 
       const res = await fetch("/api/postCheckIn", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.trim()}`,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -140,18 +144,13 @@ export default function DriverCheckIn() {
             Check-in Motorista
           </CardTitle>
           <CardDescription className="text-gray-600">
-            Informe a placa do seu veículo para registrar sua posição
+            Informe os dados abaixo para registrar sua posição
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label
-              htmlFor="placa"
-              className="text-sm font-medium text-gray-700"
-            >
-              Placa do Veículo
-            </Label>
+            <Label htmlFor="placa">Placa do Veículo</Label>
             <Input
               id="placa"
               type="text"
@@ -159,45 +158,29 @@ export default function DriverCheckIn() {
               value={placa}
               onChange={(e) => setPlaca(formatPlaca(e.target.value))}
               maxLength={7}
-              className="text-center text-lg font-mono tracking-wider"
               disabled={loading}
             />
           </div>
 
-          <div className="flex items-center justify-center space-x-4 text-sm text-gray-500">
-            <div className="flex items-center space-x-1">
-              <MapPin className="w-4 h-4" />
-              <span>GPS</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Clock className="w-4 h-4" />
-              <span>Horário BR</span>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="token">Token de Autenticação</Label>
+            <Input
+              id="token"
+              type="password"
+              placeholder="Cole seu token aqui"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              disabled={loading}
+            />
           </div>
 
           <Button
             onClick={handleCheckIn}
-            disabled={loading || !placa.trim()}
+            disabled={loading || !placa.trim() || !token.trim()}
             className="w-full h-12 text-lg font-semibold"
-            size="lg"
           >
-            {loading ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Realizando Check-in...</span>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-5 h-5" />
-                <span>Fazer Check-in</span>
-              </div>
-            )}
+            {loading ? "Realizando Check-in..." : "Fazer Check-in"}
           </Button>
-
-          <div className="text-xs text-gray-400 text-center">
-            Sua localização será capturada automaticamente. Ative o GPS e a
-            permissão do navegador.
-          </div>
         </CardContent>
       </Card>
     </div>
