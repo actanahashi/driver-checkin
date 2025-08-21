@@ -7,6 +7,8 @@ export async function POST(request: NextRequest) {
   const { NR_PLACA, DT_POSICAO, NR_LATITUDE, NR_LONGITUDE } =
     await request.json();
 
+  console.log(request);
+
   if (!NR_PLACA || !DT_POSICAO || !NR_LATITUDE || !NR_LONGITUDE) {
     return NextResponse.json(
       { success: false, message: "Payload inválido" },
